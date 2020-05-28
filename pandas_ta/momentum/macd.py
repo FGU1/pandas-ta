@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from pandas import DataFrame
+from pandas import DataFrame, concat
 from ..overlap.ema import ema
-from ..utils import get_offset, verify_series
+from ..utils import get_offset, verify_series, signals
 
 def macd(close, fast=None, slow=None, signal=None, offset=None, **kwargs):
     """Indicator: Moving Average, Convergence/Divergence (MACD)"""
@@ -51,7 +51,40 @@ def macd(close, fast=None, slow=None, signal=None, offset=None, **kwargs):
     macddf.name = f"MACD_{fast}_{slow}_{signal}"
     macddf.category = 'momentum'
 
-    return macddf
+    signal_indicators = kwargs.pop('signal_indicators', False)
+    if signal_indicators:
+        signalsdf = concat(
+            [
+                macddf,
+                signals(
+                    indicator=histogram,
+                    xa=kwargs.pop('xa', 0),
+                    xb=kwargs.pop('xb', None),
+                    xserie=kwargs.pop('xserie', None),
+                    xserie_a=kwargs.pop('xserie_a', None),
+                    xserie_b=kwargs.pop('xserie_b', None),
+                    cross_values=kwargs.pop('cross_values', True),
+                    cross_series=kwargs.pop('cross_series', True),
+                    offset=offset,
+                ),
+                signals(
+                    indicator=macd,
+                    xa=kwargs.pop('xa', 0),
+                    xb=kwargs.pop('xb', None),
+                    xserie=kwargs.pop('xserie', None),
+                    xserie_a=kwargs.pop('xserie_a', None),
+                    xserie_b=kwargs.pop('xserie_b', None),
+                    cross_values=kwargs.pop('cross_values', False),
+                    cross_series=kwargs.pop('cross_series', True),
+                    offset=offset,
+                ),
+            ],
+            axis=1
+        )
+
+        return signalsdf
+    else:
+        return macddf
 
 
 

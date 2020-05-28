@@ -25,7 +25,7 @@ def _above_below(series_a:pd.Series, series_b:pd.Series, above:bool =True, asint
         current = series_a >= series_b
     else:
         current = series_a <= series_b
-    
+
     if asint:
         current = current.astype(int)
 
@@ -39,8 +39,10 @@ def _above_below(series_a:pd.Series, series_b:pd.Series, above:bool =True, asint
 
     return current
 
+
 def above(series_a:pd.Series, series_b:pd.Series, asint:bool =True, offset:int =None, **kwargs):
     return _above_below(series_a, series_b, above=True, asint=asint, offset=offset, **kwargs)
+
 
 def above_value(series_a:pd.Series, value:float, asint:bool =True, offset:int =None, **kwargs):
     if not isinstance(value, (int, float, complex)):
@@ -49,8 +51,10 @@ def above_value(series_a:pd.Series, value:float, asint:bool =True, offset:int =N
     series_b = pd.Series(value, index=series_a.index, name=f"{value}".replace('.','_'))
     return _above_below(series_a, series_b, above=True, asint=asint, offset=offset, **kwargs)    
 
+
 def below(series_a:pd.Series, series_b:pd.Series, asint:bool =True, offset:int =None, **kwargs):
     return _above_below(series_a, series_b, above=False, asint=asint, offset=offset, **kwargs)
+
 
 def below_value(series_a:pd.Series, value:float, asint:bool =True, offset:int =None, **kwargs):
     if not isinstance(value, (int, float, complex)):
@@ -58,6 +62,7 @@ def below_value(series_a:pd.Series, value:float, asint:bool =True, offset:int =N
         return
     series_b = pd.Series(value, index=series_a.index, name=f"{value}".replace('.','_'))
     return _above_below(series_a, series_b, above=False, asint=asint, offset=offset, **kwargs)
+
 
 def combination(**kwargs):
     """https://stackoverflow.com/questions/4941753/is-there-a-math-ncr-function-in-python"""
@@ -76,6 +81,10 @@ def combination(**kwargs):
     denominator = reduce(mul, range(1, r + 1), 1)
     return numerator // denominator
 
+
+def cross_value(series_a:pd.Series, value:float, above:bool =True, asint:bool =True, offset:int =None, **kwargs):
+    series_b = pd.Series(value, index=series_a.index, name=f"{value}".replace('.','_'))
+    return cross(series_a, series_b, above, asint, offset, **kwargs)
 
 def cross(series_a:pd.Series, series_b:pd.Series, above:bool =True, asint:bool =True, offset:int =None, **kwargs):
     series_a = verify_series(series_a)
@@ -104,6 +113,53 @@ def cross(series_a:pd.Series, series_b:pd.Series, above:bool =True, asint:bool =
 
     return cross
 
+def signals(indicator, xa, xb, cross_values, xserie, xserie_a, xserie_b, cross_series, offset):
+    df = pd.DataFrame()
+    if xa is not None and isinstance(xa, (int, float)):
+        if cross_values:
+            crossed_above_start = cross_value(indicator, xa, above=True, offset=offset)
+            crossed_above_end = cross_value(indicator, xa, above=False, offset=offset)
+            df[crossed_above_start.name] = crossed_above_start
+            df[crossed_above_end.name] = crossed_above_end
+        else:
+            crossed_above = above_value(indicator, xa, offset=offset)
+            df[crossed_above.name] = crossed_above
+
+    if xb is not None and isinstance(xb, (int, float)):
+        if cross_values:
+            crossed_below_start = cross_value(indicator, xb, above=True, offset=offset)
+            crossed_below_end = cross_value(indicator, xb, above=False, offset=offset)
+            df[crossed_below_start.name] = crossed_below_start
+            df[crossed_below_end.name] = crossed_below_end
+        else:
+            crossed_below = below_value(indicator, xb, offset=offset)
+            df[crossed_below.name] = crossed_below
+
+    # xseries is the default value for both xserie_a and xserie_b
+    if xserie_a is None:
+        xserie_a = xserie
+    if xserie_b is None:
+        xserie_b = xserie
+
+    if xserie_a is not None and verify_series(xserie_a):
+        if cross_series:
+            cross_serie_above = cross(indicator, xserie_a, above=True, offset=offset)
+        else:
+            cross_serie_above = above(indicator, xserie_a, offset=offset)
+
+        df[cross_serie_above.name] = cross_serie_above
+
+    if xserie_b is not None and verify_series(xserie_b):
+        if cross_series:
+            cross_serie_below = cross(indicator, xserie_b, above=False, offset=offset)
+        else:
+            cross_serie_below = below(indicator, xserie_b, offset=offset)
+
+        df[cross_serie_below.name] = cross_serie_below
+
+    return df
+
+
 def df_error_analysis(dfA:pd.DataFrame, dfB:pd.DataFrame, **kwargs):
     """ """
     col = kwargs.pop('col', None)
@@ -118,15 +174,16 @@ def df_error_analysis(dfA:pd.DataFrame, dfB:pd.DataFrame, **kwargs):
     df = df['diff'].append(extra, ignore_index=False)[0]
 
     # For plotting
-    # if kwargs.pop('plot', False):
-    #     diff.hist()
-    #     if diff[diff > 0].any():
-    #         diff.plot(kind='kde')
+    if kwargs.pop('plot', False):
+        diff.hist()
+        if diff[diff > 0].any():
+            diff.plot(kind='kde')
     
     if col is not None:
         return df[col]
     else:
         return df
+
 
 def fibonacci(**kwargs):
     """Fibonacci Sequence as a numpy array"""
@@ -228,7 +285,7 @@ def symmetric_triangle(n:int =None, **kwargs):
 
     if n == 2:
         triangle = [1, 1]
-    
+
     if n > 2:
         if n % 2 == 0:
             front = [i + 1 for i in range(0, math.floor(n/2))]
@@ -243,7 +300,7 @@ def symmetric_triangle(n:int =None, **kwargs):
         triangle_sum = np.sum(triangle)
         triangle_weights = triangle / triangle_sum
         return triangle_weights
-    
+
     return triangle
 
 
