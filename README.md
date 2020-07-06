@@ -6,24 +6,28 @@
 # __Technical Analysis Library in Python 3.7__
 ![Example Chart](/images/TA_Chart.png)
 
-__Pandas Technical Analysis__ (Pandas TA) is an easy to use library that is built upon Python's Pandas library with more than 100 Indicators.  These indicators are comminly used for financial time series datasets with columns or labels similar to: datetime, open, high, low, close, volume, et al.  Many commonly used indicators are included, such as: _Simple Moving Average_ (*SMA*) _Moving Average Convergence Divergence_ (*MACD*), _Hull Exponential Moving Average_ (*HMA*), _Bollinger Bands_ (*BBANDS*), _On-Balance Volume_ (*OBV*), _Aroon & Aroon Oscillator_ (*AROON*) and more.
+__Pandas Technical Analysis__ (Pandas TA) is an easy to use library that is built upon Python's Pandas library with more than 100 Indicators and Utility functions.  These indicators are commonly used for financial time series datasets with columns or labels similar to: datetime, open, high, low, close, volume, et al.  Many commonly used indicators are included, such as: _Simple Moving Average_ (*SMA*) _Moving Average Convergence Divergence_ (*MACD*), _Hull Exponential Moving Average_ (*HMA*), _Bollinger Bands_ (*BBANDS*), _On-Balance Volume_ (*OBV*), _Aroon & Aroon Oscillator_ (*AROON*) and more.
 
 This version contains both the orignal code branch as well as a newly refactored branch with the option to use [Pandas DataFrame Extension](https://pandas.pydata.org/pandas-docs/stable/extending.html) mode. 
-All the indicators return a named Series or a DataFrame in uppercase underscore parameter format.  For example, MACD(fast=12, slow=26, signal=9) will return a DataFrame with columns: ['MACD_12_26_9', 'MACDH_12_26_9', 'MACDS_12_26_9'].
+All the indicators return a named Series or a DataFrame in uppercase underscore parameter format.  For example, MACD(fast=12, slow=26, signal=9) will return a DataFrame with columns: ['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9'].
 
 
 ## __Features__
 
 * Has 100+ indicators and utility functions.
+* Option to use __multiprocessing__ when using df.ta.strategy(). See below.
 * Example Jupyter Notebook under the examples directory.
 * A new 'ta' method called 'strategy' that be default, runs __all__ the indicators.
 * Abbreviated Indicator names as listed below.
 * __Extended Pandas DataFrame__ as 'ta'. 
 * Easily add prefixes or suffixes or both to columns names.
-* Categories similar to [TA-lib](https://github.com/mrjbq7/ta-lib/tree/master/docs/func_groups).
+* Categories similar to [TA-lib](https://github.com/mrjbq7/ta-lib/tree/master/docs/func_groups) and tightly correlated with TA Lib in testing.
 
 
 ## __Recent Changes__
+* Improved the calculation performance of indicators: _Exponential Moving Averagage_
+and _Weighted Moving Average_.
+* Removed internal core optimizations when running ```df.ta.strategy('all')``` with multiprocessing. See the ```ta.strategy()``` method for more details.
 
 ### __New DataFrame Method:__
     strategy (strategy)
@@ -32,11 +36,17 @@ All the indicators return a named Series or a DataFrame in uppercase underscore 
     Bias (bias)
     Choppiness Index (chop)
     Chande Kroll Stop (cksp)
+    Doji (cdl_doji)
     Entropy (entropy)
+    Heikin-Ashi Candles (ha)
+    Inertia (inertia)
     KDJ (kdj)
     Parabolic Stop and Reverse (psar)
     Price Distance (pdist)
     Psycholigical Line (psl)
+    Percentage Volume Oscillator (pvo)
+    Relative Volatility Index (rvi)
+    Supertrend (supertrend)
     Weighted Closing Price (wcp)
 ### __Added utilities:__
     Above (above)
@@ -54,6 +64,11 @@ All the indicators return a named Series or a DataFrame in uppercase underscore 
     Bollinger Bands (bbands)
     Commodity Channel Index (cci)
     Chande Momentum Oscillator (cmo)
+    Exponential Moving Average (ema)
+    Moving Average Convergence Divergence (macd)
+    Relative Vigor Index (rvgi)
+    Symmetric Weighted Moving Average (swma)
+    Weighted Moving Average (wma)
 
 ## What is a Pandas DataFrame Extension?
 
@@ -112,7 +127,7 @@ pd.DataFrame().ta.indicators()
 help(ta.log_return)
 ```
 
-## __New DataFrame Method__: _strategy_
+## __New DataFrame Method__: _strategy_ with Multiprocessing
 
 Strategy is a new __Pandas (TA)__ method to facilitate bulk indicator processing. By default, running ```df.ta.strategy()``` will append __all
 applicable__ indicators to DataFrame ```df```.  Utility methods like ```above```, ```below``` et al are not included.
@@ -121,6 +136,11 @@ applicable__ indicators to DataFrame ```df```.  Utility methods like ```above```
 
 
 ```python
+# This property only effects df.ta.strategy(). When set to True,
+# it enables multiprocessing when processing "ALL" the indicators.
+# Default is False
+df.ta.mp = True
+
 # Runs and appends all indicators to the current DataFrame by default
 # The resultant DataFrame will be large.
 df.ta.strategy()
@@ -129,6 +149,14 @@ df.ta.strategy(name='all')
 
 # Use verbose if you want to make sure it is running.
 df.ta.strategy(verbose=True)
+
+# Use timed if you want to see how long it takes to run.
+df.ta.strategy(timed=True)
+
+# You can change the number of cores to use. The default is the the number of
+# cpus you have. Not utilizing all your cores will result in quicker results.
+# For instance if you have 4 CPUs, then cores=2 will be quicker.
+df.ta.strategy(cores=2)
 
 # Maybe you do not want certain indicators.
 # Just exclude (a list of) them.
@@ -149,11 +177,11 @@ df.columns
 prehl2 = df.ta.hl2(prefix="pre")
 print(prehl2.name)  # "pre_HL2"
 
-endhl2 = df.ta.hl2(suffix="end")
-print(endhl2.name)  # "HL2_end"
+endhl2 = df.ta.hl2(suffix="post")
+print(endhl2.name)  # "HL2_post"
 
-bothhl2 = df.ta.hl2(prefix="pre", suffix="end")
-print(bothhl2.name)  # "pre_HL2_end"
+bothhl2 = df.ta.hl2(prefix="pre", suffix="post")
+print(bothhl2.name)  # "pre_HL2_post"
 ```
 
 ## __New DataFrame Properties__: _reverse_ & _datetime_ordered_
@@ -182,7 +210,12 @@ df.ta.adjusted = None
 
 # __Technical Analysis Indicators__ (_by Category_)
 
-## _Momentum_ (25)
+## _Candles_ (2)
+
+* _Doji_: **cdl_doji**
+* _Heikin-Ashi_: **ha**
+
+## _Momentum_ (27)
 
 * _Awesome Oscillator_: **ao**
 * _Absolute Price Oscillator_: **apo**
@@ -194,15 +227,17 @@ df.ta.adjusted = None
 * _Chande Momentum Oscillator_: **cmo**
 * _Coppock Curve_: **coppock**
 * _Fisher Transform_: **fisher**
+* _Inertia_: **inertia**
 * _KDJ_: **kdj**
 * _KST Oscillator_: **kst**
 * _Moving Average Convergence Divergence_: **macd**
 * _Momentum_: **mom**
 * _Percentage Price Oscillator_: **ppo**
 * _Psychological Line_: **psl**
+* _Percentage Volume Oscillator_: **pvo**
 * _Rate of Change_: **roc**
 * _Relative Strength Index_: **rsi**
-* _Relative Vigor Index_: **rvi**
+* _Relative Vigor Index_: **rvgi**
 * _Slope_: **slope*
 * _Stochastic Oscillator_: **stoch**
 * _Trix_: **trix**
@@ -215,7 +250,7 @@ df.ta.adjusted = None
 |:--------:|
 | ![Example MACD](/images/SPY_MACD.png) |
 
-## _Overlap_ (25)
+## _Overlap_ (26)
 
 * _Double Exponential Moving Average_: **dema**
 * _Exponential Moving Average_: **ema**
@@ -224,17 +259,18 @@ df.ta.adjusted = None
 * _High-Low-Close Average_: **hlc3**
     * Commonly known as 'Typical Price' in Technical Analysis literature
 * _Hull Exponential Moving Average_: **hma**
-* _Kaufman's Adaptive Moving Average_: **kama**
 * _Ichimoku Kinkō Hyō_: **ichimoku**
     * Use: help(ta.ichimoku). Returns two DataFrames.
+* _Kaufman's Adaptive Moving Average_: **kama**
 * _Linear Regression_: **linreg**
 * _Midpoint_: **midpoint**
 * _Midprice_: **midprice**
 * _Open-High-Low-Close Average_: **ohlc4**
 * _Pascal's Weighted Moving Average_: **pwma**
 * _William's Moving Average_: **rma**
-* _Simple Moving Average_: **sma**
 * _Sine Weighted Moving Average_: **sinwma**
+* _Simple Moving Average_: **sma**
+* _Supertrend_: **supertrend**
 * _Symmetric Weighted Moving Average_: **swma**
 * _T3 Moving Average_: **t3**
 * _Triple Exponential Moving Average_: **tema**
@@ -306,7 +342,7 @@ Use parameter: cumulative=**True** for cumulative results.
 * _Below Value_: **below_value**
 * _Cross_: **cross**
 
-## _Volatility_ (10)
+## _Volatility_ (11)
 
 * _Aberration_: **aberration**
 * _Acceleration Bands_: **accbands**
@@ -317,6 +353,7 @@ Use parameter: cumulative=**True** for cumulative results.
 * _Mass Index_: **massi**
 * _Normalized Average True Range_: **natr**
 * _Price Distance_: **pdist**
+* _Relative Volatility Index_: **rvi**
 * _True Range_: **true_range**
 
 | _Average True Range_ (ATR) |
@@ -353,6 +390,5 @@ Use parameter: cumulative=**True** for cumulative results.
 # Inspiration
 * TradingView: http://www.tradingview.com
 * Original TA-LIB: http://ta-lib.org/
-* Bukosabino: https://github.com/bukosabino/ta
 
-Please leave any comments, feedback, or suggestions.
+Please leave any comments, feedback, suggestions, or indicator requests.

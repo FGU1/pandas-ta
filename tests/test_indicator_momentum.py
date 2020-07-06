@@ -149,6 +149,20 @@ class TestMomentum(TestCase):
         self.assertIsInstance(result, Series)
         self.assertEqual(result.name, 'FISHERT_5')
 
+    def test_inertia(self):
+        result = pandas_ta.inertia(self.close)
+        self.assertIsInstance(result, Series)
+        self.assertEqual(result.name, 'INERTIA_20_14')
+
+        result = pandas_ta.inertia(self.close, self.high, self.low, refined=True)
+        self.assertIsInstance(result, Series)
+        self.assertEqual(result.name, 'INERTIAr_20_14')
+
+        result = pandas_ta.inertia(self.close, self.high, self.low, thirds=True)
+        self.assertIsInstance(result, Series)
+        self.assertEqual(result.name, 'INERTIAt_20_14')
+
+
     def test_kdj(self):
         result = pandas_ta.kdj(self.high, self.low, self.close)
         self.assertIsInstance(result, DataFrame)
@@ -166,7 +180,7 @@ class TestMomentum(TestCase):
 
         try:
             expected = tal.MACD(self.close)
-            expecteddf = DataFrame({'MACD_12_26_9': expected[0], 'MACDH_12_26_9': expected[2], 'MACDS_12_26_9': expected[1]})
+            expecteddf = DataFrame({'MACD_12_26_9': expected[0], 'MACDh_12_26_9': expected[2], 'MACDs_12_26_9': expected[1]})
             pdt.assert_frame_equal(result, expecteddf)
         except AssertionError as ae:
             try:
@@ -222,6 +236,11 @@ class TestMomentum(TestCase):
         self.assertIsInstance(result, Series)
         self.assertEqual(result.name, 'PSL_12')
 
+    def test_pvo(self):
+        result = pandas_ta.pvo(self.volume)
+        self.assertIsInstance(result, DataFrame)
+        self.assertEqual(result.name, 'PVO_12_26_9')
+
     def test_roc(self):
         result = pandas_ta.roc(self.close)
         self.assertIsInstance(result, Series)
@@ -252,10 +271,10 @@ class TestMomentum(TestCase):
             except Exception as ex:
                 error_analysis(result, CORRELATION, ex)
 
-    def test_rvi(self):
-        result = pandas_ta.rvi(self.open, self.high, self.low, self.close)
+    def test_rvgi(self):
+        result = pandas_ta.rvgi(self.open, self.high, self.low, self.close)
         self.assertIsInstance(result, DataFrame)
-        self.assertEqual(result.name, 'RVI_14_4')
+        self.assertEqual(result.name, 'RVGI_14_4')
 
     def test_slope(self):
         result = pandas_ta.slope(self.close)
@@ -314,8 +333,8 @@ class TestMomentum(TestCase):
 
     def test_trix(self):
         result = pandas_ta.trix(self.close)
-        self.assertIsInstance(result, Series)
-        self.assertEqual(result.name, 'TRIX_30')
+        self.assertIsInstance(result, DataFrame)
+        self.assertEqual(result.name, 'TRIX_30_9')
 
     def test_tsi(self):
         result = pandas_ta.tsi(self.close)

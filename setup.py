@@ -6,7 +6,7 @@ long_description = "An easy to use Python 3 Pandas Extension with 100+ Technical
 
 setup(
     name ="pandas_ta",
-    packages =['pandas_ta', 'pandas_ta.momentum', 'pandas_ta.overlap', 'pandas_ta.performance', 'pandas_ta.statistics', 'pandas_ta.trend', 'pandas_ta.volatility', 'pandas_ta.volume'],
+    packages =['pandas_ta', 'pandas_ta.candles', 'pandas_ta.momentum', 'pandas_ta.overlap', 'pandas_ta.performance', 'pandas_ta.statistics', 'pandas_ta.trend', 'pandas_ta.volatility', 'pandas_ta.volume'],
     version =version,
     description =long_description,
     long_description =long_description,
@@ -15,9 +15,9 @@ setup(
     url ="https://github.com/twopirllc/pandas-ta",
     maintainer ="Kevin Johnson",
     maintainer_email ="appliedmathkj@gmail.com",
-    # install_requires=['numpy','pandas'],
+    # install_requires=['pandas'],
     download_url ="https://github.com/twopirllc/pandas-ta.git",
-    keywords =['technical analysis', 'python3', 'pandas'],
+    keywords =['technical analysis', 'trading', 'python3', 'pandas'],
     license ="The MIT License (MIT)",
     classifiers =[
         'Development Status :: 4 - Beta',

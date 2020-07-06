@@ -73,6 +73,21 @@ class TestMomentumExtension(TestCase):
         self.assertIsInstance(self.data, DataFrame)
         self.assertEqual(self.data.columns[-1], 'FISHERT_5')
 
+    def test_inertia_ext(self):
+        self.data.ta.inertia(append=True)
+        self.assertIsInstance(self.data, DataFrame)
+        self.assertEqual(self.data.columns[-1], 'INERTIA_20_14')
+
+    def test_inertia_refined_ext(self):
+        self.data.ta.inertia(refined=True, append=True)
+        self.assertIsInstance(self.data, DataFrame)
+        self.assertEqual(self.data.columns[-1], 'INERTIAr_20_14')
+
+    def test_inertia_thirds_ext(self):
+        self.data.ta.inertia(thirds=True, append=True)
+        self.assertIsInstance(self.data, DataFrame)
+        self.assertEqual(self.data.columns[-1], 'INERTIAt_20_14')
+
     def test_kdj_ext(self):
         self.data.ta.kdj(append=True)
         self.assertIsInstance(self.data, DataFrame)
@@ -81,12 +96,12 @@ class TestMomentumExtension(TestCase):
     def test_kst_ext(self):
         self.data.ta.kst(append=True)
         self.assertIsInstance(self.data, DataFrame)
-        self.assertEqual(list(self.data.columns[-2:]), ['KST_10_15_20_30_10_10_10_15', 'KSTS_9'])
+        self.assertEqual(list(self.data.columns[-2:]), ['KST_10_15_20_30_10_10_10_15', 'KSTs_9'])
 
     def test_macd_ext(self):
         self.data.ta.macd(append=True)
         self.assertIsInstance(self.data, DataFrame)
-        self.assertEqual(list(self.data.columns[-3:]), ['MACD_12_26_9', 'MACDH_12_26_9', 'MACDS_12_26_9'])
+        self.assertEqual(list(self.data.columns[-3:]), ['MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9'])
 
     def test_mom_ext(self):
         self.data.ta.mom(append=True)
@@ -96,12 +111,17 @@ class TestMomentumExtension(TestCase):
     def test_ppo_ext(self):
         self.data.ta.ppo(append=True)
         self.assertIsInstance(self.data, DataFrame)
-        self.assertEqual(list(self.data.columns[-3:]), ['PPO_12_26_9', 'PPOH_12_26_9', 'PPOS_12_26_9'])
+        self.assertEqual(list(self.data.columns[-3:]), ['PPO_12_26_9', 'PPOh_12_26_9', 'PPOs_12_26_9'])
 
     def test_psl_ext(self):
         self.data.ta.psl(append=True)
         self.assertIsInstance(self.data, DataFrame)
         self.assertEqual(self.data.columns[-1], 'PSL_12')
+
+    def test_pvo_ext(self):
+        self.data.ta.pvo(append=True)
+        self.assertIsInstance(self.data, DataFrame)
+        self.assertEqual(list(self.data.columns[-3:]), ['PVO_12_26_9', 'PVOh_12_26_9', 'PVOs_12_26_9'])
 
     def test_roc_ext(self):
         self.data.ta.roc(append=True)
@@ -113,10 +133,10 @@ class TestMomentumExtension(TestCase):
         self.assertIsInstance(self.data, DataFrame)
         self.assertEqual(self.data.columns[-1], 'RSI_14')
 
-    def test_rvi_ext(self):
-        self.data.ta.rvi(append=True)
+    def test_rvgi_ext(self):
+        self.data.ta.rvgi(append=True)
         self.assertIsInstance(self.data, DataFrame)
-        self.assertEqual(list(self.data.columns[-2:]), ['RVI_14_4', 'RVIS_14_4'])
+        self.assertEqual(list(self.data.columns[-2:]), ['RVGI_14_4', 'RVGIs_14_4'])
 
     def test_slope_ext(self):
         self.data.ta.slope(append=True)
@@ -139,7 +159,7 @@ class TestMomentumExtension(TestCase):
     def test_trix_ext(self):
         self.data.ta.trix(append=True)
         self.assertIsInstance(self.data, DataFrame)
-        self.assertEqual(self.data.columns[-1], 'TRIX_30')
+        self.assertEqual(list(self.data.columns[-2:]), ['TRIX_30_9', 'TRIXs_30_9'])
 
     def test_tsi_ext(self):
         self.data.ta.tsi(append=True)
