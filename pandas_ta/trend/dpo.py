@@ -2,6 +2,7 @@
 from pandas_ta.overlap import sma
 from pandas_ta.utils import get_offset, verify_series
 
+
 def dpo(close, length=None, centered=True, offset=None, **kwargs):
     """Indicator: Detrend Price Oscillator (DPO)"""
     # Validate Arguments
@@ -12,7 +13,7 @@ def dpo(close, length=None, centered=True, offset=None, **kwargs):
     # Calculate Result
     t = int(0.5 * length) + 1
     ma = sma(close, length)
-    
+
     dpo = close - ma.shift(t)
     if centered:
         dpo = (close.shift(t) - ma).shift(-t)
@@ -22,17 +23,16 @@ def dpo(close, length=None, centered=True, offset=None, **kwargs):
         dpo = dpo.shift(offset)
 
     # Handle fills
-    if 'fillna' in kwargs:
-        dpo.fillna(kwargs['fillna'], inplace=True)
-    if 'fill_method' in kwargs:
-        dpo.fillna(method=kwargs['fill_method'], inplace=True)
+    if "fillna" in kwargs:
+        dpo.fillna(kwargs["fillna"], inplace=True)
+    if "fill_method" in kwargs:
+        dpo.fillna(method=kwargs["fill_method"], inplace=True)
 
     # Name and Categorize it
     dpo.name = f"DPO_{length}"
-    dpo.category = 'trend'
+    dpo.category = "trend"
 
     return dpo
-
 
 
 dpo.__doc__ = \
@@ -51,7 +51,7 @@ Calculation:
         length=20, centered=True
     SMA = Simple Moving Average
     t = int(0.5 * length) + 1
-    
+
     DPO = close.shift(t) - SMA(close, length)
     if centered:
         DPO = DPO.shift(-t)

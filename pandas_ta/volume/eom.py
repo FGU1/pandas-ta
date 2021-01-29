@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from ..overlap.hl2 import hl2
-from ..utils import get_drift, get_offset, non_zero_range, verify_series
+from pandas_ta.overlap import hl2, sma
+from pandas_ta.utils import get_drift, get_offset, non_zero_range, verify_series
+
 
 def eom(high, low, close, volume, length=None, divisor=None, drift=None, offset=None, **kwargs):
     """Indicator: Ease of Movement (EOM)"""
@@ -9,36 +10,35 @@ def eom(high, low, close, volume, length=None, divisor=None, drift=None, offset=
     low = verify_series(low)
     close = verify_series(close)
     volume = verify_series(volume)
-    high_low_range = non_zero_range(high, low)
     length = int(length) if length and length > 0 else 14
-    min_periods = int(kwargs['min_periods']) if 'min_periods' in kwargs and kwargs['min_periods'] is not None else length
     divisor = divisor if divisor and divisor > 0 else 100000000
     drift = get_drift(drift)
     offset = get_offset(offset)
 
     # Calculate Result
-    distance = hl2(high=high, low=low) - hl2(high=high.shift(drift), low=low.shift(drift))
+    high_low_range = non_zero_range(high, low)
+    distance  = hl2(high=high, low=low)
+    distance -= hl2(high=high.shift(drift), low=low.shift(drift))
     box_ratio = volume / divisor
     box_ratio /= high_low_range
     eom = distance / box_ratio
-    eom = eom.rolling(length, min_periods=min_periods).mean()
+    eom = sma(eom, length=length)
 
     # Offset
     if offset != 0:
         eom = eom.shift(offset)
 
     # Handle fills
-    if 'fillna' in kwargs:
-        eom.fillna(kwargs['fillna'], inplace=True)
-    if 'fill_method' in kwargs:
-        eom.fillna(method=kwargs['fill_method'], inplace=True)
+    if "fillna" in kwargs:
+        eom.fillna(kwargs["fillna"], inplace=True)
+    if "fill_method" in kwargs:
+        eom.fillna(method=kwargs["fill_method"], inplace=True)
 
     # Name and Categorize it
     eom.name = f"EOM_{length}_{divisor}"
-    eom.category = 'volume'
+    eom.category = "volume"
 
     return eom
-
 
 
 eom.__doc__ = \
@@ -55,7 +55,7 @@ Sources:
 Calculation:
     Default Inputs:
         length=14, divisor=100000000, drift=1
-    SMA = Simple Moving Average    
+    SMA = Simple Moving Average
     hl_range = high - low
     distance = 0.5 * (high - high.shift(drift) + low - low.shift(drift))
     box_ratio = (volume / divisor) / hl_range

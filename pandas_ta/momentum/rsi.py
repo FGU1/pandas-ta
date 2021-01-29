@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from pandas import DataFrame, concat
+from pandas_ta.overlap import rma
 from pandas_ta.utils import get_drift, get_offset, verify_series, signals
+
 
 def rsi(close, length=None, scalar=None, drift=None, offset=None, **kwargs):
     """Indicator: Relative Strength Index (RSI)"""
@@ -18,51 +20,48 @@ def rsi(close, length=None, scalar=None, drift=None, offset=None, **kwargs):
     positive[positive < 0] = 0  # Make negatives 0 for the postive series
     negative[negative > 0] = 0  # Make postives 0 for the negative series
 
-    positive_avg = positive.ewm(com=length, adjust=False).mean()
-    negative_avg = negative.ewm(com=length, adjust=False).mean().abs()
+    positive_avg = rma(positive, length=length)
+    negative_avg = rma(negative, length=length)
 
-    rsi = scalar * positive_avg / (positive_avg + negative_avg)
+    rsi = scalar * positive_avg / (positive_avg + negative_avg.abs())
 
     # Offset
     if offset != 0:
         rsi = rsi.shift(offset)
 
     # Handle fills
-    if 'fillna' in kwargs:
-        rsi.fillna(kwargs['fillna'], inplace=True)
-    if 'fill_method' in kwargs:
-        rsi.fillna(method=kwargs['fill_method'], inplace=True)
+    if "fillna" in kwargs:
+        rsi.fillna(kwargs["fillna"], inplace=True)
+    if "fill_method" in kwargs:
+        rsi.fillna(method=kwargs["fill_method"], inplace=True)
 
     # Name and Categorize it
     rsi.name = f"RSI_{length}"
-    rsi.category = 'momentum'
+    rsi.category = "momentum"
 
-    signal_indicators = kwargs.pop('signal_indicators', False)
+    signal_indicators = kwargs.pop("signal_indicators", False)
     if signal_indicators:
         signalsdf = concat(
             [
-                DataFrame(
-                    {rsi.name: rsi}
-                ),
+                DataFrame({rsi.name: rsi}),
                 signals(
                     indicator=rsi,
-                    xa=kwargs.pop('xa', 80),
-                    xb=kwargs.pop('xb', 20),
-                    xserie=kwargs.pop('xserie', None),
-                    xserie_a=kwargs.pop('xserie_a', None),
-                    xserie_b=kwargs.pop('xserie_b', None),
-                    cross_values=kwargs.pop('cross_values', False),
-                    cross_series=kwargs.pop('cross_series', True),
+                    xa=kwargs.pop("xa", 80),
+                    xb=kwargs.pop("xb", 20),
+                    xserie=kwargs.pop("xserie", None),
+                    xserie_a=kwargs.pop("xserie_a", None),
+                    xserie_b=kwargs.pop("xserie_b", None),
+                    cross_values=kwargs.pop("cross_values", False),
+                    cross_series=kwargs.pop("cross_series", True),
                     offset=offset,
                 ),
             ],
-            axis=1
+            axis=1,
         )
 
         return signalsdf
     else:
         return rsi
-
 
 
 rsi.__doc__ = \
@@ -90,10 +89,10 @@ Calculation:
 
 Args:
     close (pd.Series): Series of 'close's
-    length (int): It's period.  Default: 1
-    scalar (float): How much to magnify.  Default: 100
-    drift (int): The difference period.  Default: 1
-    offset (int): How many periods to offset the result.  Default: 0
+    length (int): It's period. Default: 14
+    scalar (float): How much to magnify. Default: 100
+    drift (int): The difference period. Default: 1
+    offset (int): How many periods to offset the result. Default: 0
 
 Kwargs:
     fillna (value, optional): pd.DataFrame.fillna(value)

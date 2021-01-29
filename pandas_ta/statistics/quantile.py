@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from ..utils import get_offset, verify_series
+from pandas_ta.utils import get_offset, verify_series
+
 
 def quantile(close, length=None, q=None, offset=None, **kwargs):
     """Indicator: Quantile"""
     # Validate Arguments
     close = verify_series(close)
     length = int(length) if length and length > 0 else 30
-    min_periods = int(kwargs['min_periods']) if 'min_periods' in kwargs and kwargs['min_periods'] is not None else length
+    min_periods = int(kwargs["min_periods"]) if "min_periods" in kwargs and kwargs["min_periods"] is not None else length
     q = float(q) if q and q > 0 and q < 1 else 0.5
     offset = get_offset(offset)
 
@@ -19,10 +20,9 @@ def quantile(close, length=None, q=None, offset=None, **kwargs):
 
     # Name & Category
     quantile.name = f"QTL_{length}_{q}"
-    quantile.category = 'statistics'
+    quantile.category = "statistics"
 
     return quantile
-
 
 
 quantile.__doc__ = \
@@ -37,9 +37,9 @@ Calculation:
 
 Args:
     close (pd.Series): Series of 'close's
-    length (int): It's period.  Default: 30
-    q (float): The quantile.  Default: 0.5
-    offset (int): How many periods to offset the result.  Default: 0
+    length (int): It's period. Default: 30
+    q (float): The quantile. Default: 0.5
+    offset (int): How many periods to offset the result. Default: 0
 
 Kwargs:
     fillna (value, optional): pd.DataFrame.fillna(value)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from pandas import DataFrame
-from pandas_ta.overlap import ema, sma
+from pandas_ta.overlap import ma
 from pandas_ta.statistics import stdev
-from pandas_ta.utils import get_drift, get_offset, non_zero_range, unsigned_differences, verify_series
+from pandas_ta.utils import get_drift, get_offset, non_zero_range
+from pandas_ta.utils import unsigned_differences, verify_series
 
 
 def rvi(close, high=None, low=None, length=None, scalar=None, refined=None, thirds=None, mamode=None, drift=None, offset=None, **kwargs):
@@ -13,7 +13,7 @@ def rvi(close, high=None, low=None, length=None, scalar=None, refined=None, thir
     scalar = float(scalar) if scalar and scalar > 0 else 100
     refined = False if refined is None else refined
     thirds = False if thirds is None else thirds
-    mamode = mamode.lower() if mamode else "ema"
+    mamode = mamode if isinstance(mamode, str) else "ema"
     drift = get_drift(drift)
     offset = get_offset(offset)
 
@@ -22,7 +22,7 @@ def rvi(close, high=None, low=None, length=None, scalar=None, refined=None, thir
         low = verify_series(low)
 
     # Calculate Result
-    def rvi_(source, length, scalar, mamode, drift):
+    def _rvi(source, length, scalar, mode, drift):
         """RVI"""
         std = stdev(source, length)
         pos, neg = unsigned_differences(source, amount=drift)
@@ -30,12 +30,8 @@ def rvi(close, high=None, low=None, length=None, scalar=None, refined=None, thir
         pos_std = pos * std
         neg_std = neg * std
 
-        if mamode == 'sma':
-            pos_avg = sma(pos_std, length)
-            neg_avg = sma(neg_std, length)
-        else: # 'ema'
-            pos_avg = ema(pos_std, length)
-            neg_avg = ema(neg_std, length)
+        pos_avg = ma(mode, pos_std, length=length)
+        neg_avg = ma(mode, neg_std, length=length)
 
         result = scalar * pos_avg
         result /= pos_avg + neg_avg
@@ -43,35 +39,34 @@ def rvi(close, high=None, low=None, length=None, scalar=None, refined=None, thir
 
     _mode = ""
     if refined:
-        high_rvi = rvi_(high, length, scalar, mamode, drift)
-        low_rvi = rvi_(low, length, scalar, mamode, drift)
+        high_rvi = _rvi(high, length, scalar, mamode, drift)
+        low_rvi = _rvi(low, length, scalar, mamode, drift)
         rvi = 0.5 * (high_rvi + low_rvi)
         _mode = "r"
     elif thirds:
-        high_rvi = rvi_(high, length, scalar, mamode, drift)
-        low_rvi = rvi_(low, length, scalar, mamode, drift)
-        close_rvi = rvi_(close, length, scalar, mamode, drift)
-        rvi = (high_rvi + low_rvi + close_rvi) / 3.
+        high_rvi = _rvi(high, length, scalar, mamode, drift)
+        low_rvi = _rvi(low, length, scalar, mamode, drift)
+        close_rvi = _rvi(close, length, scalar, mamode, drift)
+        rvi = (high_rvi + low_rvi + close_rvi) / 3.0
         _mode = "t"
     else:
-        rvi = rvi_(close, length, scalar, mamode, drift)
+        rvi = _rvi(close, length, scalar, mamode, drift)
 
     # Offset
     if offset != 0:
         rvi = rvi.shift(offset)
 
     # Handle fills
-    if 'fillna' in kwargs:
-        rvi.fillna(kwargs['fillna'], inplace=True)
-    if 'fill_method' in kwargs:
-        rvi.fillna(method=kwargs['fill_method'], inplace=True)
+    if "fillna" in kwargs:
+        rvi.fillna(kwargs["fillna"], inplace=True)
+    if "fill_method" in kwargs:
+        rvi.fillna(method=kwargs["fill_method"], inplace=True)
 
     # Name and Categorize it
     rvi.name = f"RVI{_mode}_{length}"
     rvi.category = "volatility"
 
     return rvi
-
 
 
 rvi.__doc__ = \
@@ -103,9 +98,9 @@ Args:
     high (pd.Series): Series of 'high's
     low (pd.Series): Series of 'low's
     close (pd.Series): Series of 'close's
-    length (int): The short period.  Default: 14
+    length (int): The short period. Default: 14
     scalar (float): A positive float to scale the bands.   Default: 100
-    mamode (str): Two options: None or 'ema'.  Default: 'ema'
+    mamode (str): Options: 'sma' or 'ema'. Default: 'sma'
     refined (bool): Use 'refined' calculation which is the average of
         RVI(high) and RVI(low) instead of RVI(close). Default: False
     thirds (bool): Average of high, low and close. Default: False
